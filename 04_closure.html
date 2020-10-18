@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+
+<body>
+	<script>
+		function getSalary(base) {
+			return function (performance) {
+				return base + performance
+			}
+		}
+
+		const getSalary1 = getSalary(12000)
+
+		console.log(getSalary1(400))
+		console.log(getSalary1(800))
+	</script>
+</body>
+
+</html>
