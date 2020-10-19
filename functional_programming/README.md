@@ -771,3 +771,106 @@ const firstLetterToUpper = fp.flowRight(fp.join('. '), fp.map(fp.first), fp.map(
 //const firstLetterToUpper = fp.flowRight(fp.join('. '), fp.map(fp.flowRight(fp.first, fp.toUpper)), fp.split(' '))
 console.log(firstLetterToUpper('world wild web')) // => W. W. W
 ```
+
+#### Functor (函子)
+
+#### 为什么要学函子
+
+到目前为止已经已经学习了函数式编程的一些基础，但是我们还没有演示在函数式编程中如何把副作用 控制在可控的范围内、异常处理、异步操作等。
+
+#### 什么是 Functor
+
+-   容器:包含值和值的变形关系(这个变形关系就是函数)
+-   函子:是一个特殊的容器，通过一个普通的对象来实现，该对象具有 map 方法，map 方法可以运行一个函数对值进行处理(变形关系)
+
+#### Functor 函子
+
+```js
+// 函子
+
+// class Container {
+// 	constructor(value) {
+// 		this._value = value
+// 	}
+// 	// 对数据进行处理，返回一个新的函子
+// 	map(fn) {
+// 		return new Container(fn(this._value))
+// 	}
+// }
+
+// const container = new Container(2)
+
+//  改进
+
+class Container {
+	static of(val) {
+		return new Container(val)
+	}
+
+	constructor(value) {
+		this._value = value
+	}
+	// 对数据进行处理，返回一个新的函子
+	map(fn) {
+		return Container.of(fn(this._value))
+	}
+}
+
+const container = Container.of(2)
+
+const r = container.map(value => value + 2).map(val => val * val)
+
+console.log(r)
+```
+
+-   总结
+    -   函数式编程的运算不直接操作值，而是由函子完成
+    -   函子就是一个实现了 map 契约的对象
+    -   我们可以把函子想象成一个盒子，这个盒子里封装了一个值
+    -   想要处理盒子中的值，我们需要给盒子的 map 方法传递一个处理值的函数(纯函数)，由这个函数来对值进行处理
+    -   最终 map 方法返回一个包含新值的盒子(函子)
+-   在 Functor 中如果我们传入 null 或 undefined
+
+```js
+// 值如果不小心传入了空值(副作用)
+Container.of(null).map(x => x.toUpperCase())
+// TypeError: Cannot read property 'toUpperCase' of null
+```
+
+#### MayBe 函子
+
+-   我们在编程的过程中可能会遇到很多错误，需要对这些错误做相应的处理
+-   MayBe 函子的作用就是可以对外部的空值情况做处理(控制副作用在允许的范围)
+
+```js
+//  Maybe函子
+
+class Maybe {
+	static of(val) {
+		return new Maybe(val)
+	}
+
+	constructor(value) {
+		this._value = value
+	}
+	// 对数据进行处理，返回一个新的函子
+	map(fn) {
+		//如果对空值变形的话直接返回 值为 null 的函子
+		return this.isNothing() ? Maybe.of(null) : Maybe.of(fn(this._value))
+	}
+
+	isNothing() {
+		return this._value === null || this._value === undefined
+	}
+}
+
+const r1 = Maybe.of(null).map(val => val.toUpperCase())
+
+console.log(r1)
+
+const r = Maybe.of(2)
+	.map(value => value + 2)
+	.map(val => val * val)
+
+console.log(r)
+```
