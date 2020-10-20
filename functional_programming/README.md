@@ -874,3 +874,151 @@ const r = Maybe.of(2)
 
 console.log(r)
 ```
+
+#### Either 函子
+
+-   Either 两者中的任何一个，类似于 if...else...的处理
+-   异常会让函数变的不纯，Either 函子可以用来做异常处理
+
+```js
+// Either函子 可以通过继承container函子来实现
+
+class Left {
+	static of(value) {
+		return new Left(value)
+	}
+
+	constructor(value) {
+		this._value = value
+	}
+	//  map方法返回当前的函子
+	map(fn) {
+		return this
+	}
+}
+
+class Right {
+	static of(value) {
+		return new Right(value)
+	}
+
+	constructor(value) {
+		this._value = value
+	}
+
+	map(fn) {
+		return Right.of(fn(this._value))
+	}
+}
+
+//  处理异常
+
+function parseJson(json) {
+	try {
+		return Right.of(JSON.parse(json))
+	} catch (error) {
+		return Left.of({ error: error.message })
+	}
+}
+
+//const r = parseJson({ name: 'hello' }).map(a => a.name.toUpperCase())
+const r = parseJson('{"name":"hello"}').map(a => a.name.toUpperCase())
+console.log(r)
+```
+
+#### IO 函子
+
+-   IO 函子中的 \_value 是一个函数，这里是把函数作为值来处理
+-   IO 函子可以把不纯的动作存储到 \_value 中，延迟执行这个不纯的操作(惰性执行)，包装当前的操 作纯
+-   把不纯的操作交给调用者来处理(会将要执行的函数一直组合直到并存储到新的函子容器中)
+
+```js
+//  IO函子
+const fp = require('lodash/fp')
+const process = require('process')
+class IO {
+	static of(x) {
+		return new IO(function () {
+			return x
+		})
+	}
+
+	constructor(fn) {
+		this._value = fn
+	}
+
+	map(fn) {
+		return new IO(fp.flowRight(fn, this._value))
+	}
+}
+
+// 打印环境变量
+
+let io = IO.of(process).map(p => p.execPath)
+console.log(io._value())
+```
+
+#### Task 函子 异步执行
+
+-   异步任务的实现过于复杂，我们使用 folktale 中的 Task 来演示 folktale 一个标准的函数式编程库
+-   和 lodash、ramda 不同的是，他没有提供很多功能函数 只提供了一些函数式处理的操作，例如:compose、curry 等，一些函子 Task、Either、 MayBe 等
+
+```js
+const { compose, curry } = require('folktale/core/lambda')
+
+const { toUpper, first } = require('lodash/fp')
+// folktale的curry 第一个参数是函数中参数的个数
+const fn = curry(2, (x, y) => x + y)
+
+console.log(fn(2, 3))
+
+console.log(fn(2)(3))
+
+//  compose
+
+const func = compose(toUpper, first)
+
+console.log(func(['hello', 'world']))
+```
+
+-   Task 异步执行
+    -   folktale(2.3.2) 2.x 中的 Task 和 1.0 中的 Task 区别很大，1.0 中的用法更接近我们现在演示的函子
+    -   这里以 2.3.2 来演示
+
+```js
+const { task } = require('folktale/concurrency/task')
+const { split, find } = require('lodash/fp')
+const fs = require('fs')
+
+//  处理异步任务,返回task函子
+
+function readFile(fileName) {
+	return task(resolver => {
+		fs.readFile(fileName, 'utf-8', (err, data) => {
+			if (err) {
+				return resolver.reject(err)
+			}
+			resolver.resolve(data)
+		})
+	})
+}
+
+// 调用
+//  run 执行函子
+//  listen()监听异步任务执行的事件
+
+//  将文件读取的结果保存到函子中，通过map方法传入函数去处理数据
+
+readFile('../package.json')
+	.map(split('\n'))
+	.map(find(x => x.includes('version')))
+	.run()
+	.listen({
+		onRejected: err => {
+			console.log(err)
+		},
+		onResolved: value => {
+			console.log(value)
+		}
+	})
+```
