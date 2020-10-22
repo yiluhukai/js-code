@@ -271,11 +271,13 @@ console.log(getSalary1(800))
 
 -   纯函数:相同的输入永远会得到相同的输出，而且没有任何可观察的副作用
 
-    -   纯函数就类似数学中的函数(用来描述输入和输出之间的关系)，y = f(x) ![5cfb376d9578b7d7570aabed2a58cc2f.png](evernotecid://48BC2FAB-231C-4AC6-BF8E-D98489F70F11/appyinxiangcom/24780240/ENResource/p64)
+    -   纯函数就类似数学中的函数(用来描述输入和输出之间的关系)，y = f(x)
+
+        ![5cfb376d9578b7d7570aabed2a58cc2f](函数式编程.resources/5F92691F-49B3-4E1A-B560-4FF0E893FC43.png)
 
 -   [lodash](https://github.com/lodash/lodash) 是一个纯函数的功能库，提供了对数组、数字、对象、字符串、函数等操作的一些方法
 -   数组的 slice 和 splice 分别是:纯函数和不纯的函数
-    -   slice 不会返回数组中的指定部分，不会改变原数组
+    -   slice 会返回数组中的指定部分，不会改变原数组
     -   splice 会改变原数组
 
 ```js
@@ -284,7 +286,9 @@ numbers.slice(0, 3) // => [1, 2, 3]
 numbers.slice(0, 3) // => [1, 2, 3]
 numbers.slice(0, 3) // => [1, 2, 3]
 // 不纯的函数
-numbers.splice(0, 3) // => [1, 2, 3] numbers.splice(0, 3) // => [4, 5] numbers.splice(0, 3) // => []
+numbers.splice(0, 3) // => [1, 2, 3]
+numbers.splice(0, 3) // => [4, 5]
+numbers.splice(0, 3) // => []
 ```
 
 -   函数式编程不会保留计算中间的结果，所以变量是不可变的(无状态的)
@@ -396,7 +400,8 @@ let mini = 18
 #### 柯里化 (Haskell Brooks Curry)
 
 ```js
-function checkAge (age) { let min = 18
+function checkAge (age) {
+    let min = 18
     return age >= min
 }
 // 普通纯函数
@@ -528,17 +533,17 @@ console.log(curried(1, 2)(3))
 #### 函数的组合
 
 -   纯函数和柯里化很容易写出洋葱代码 h(g(f(x))) \* 获取数组的最后一个元素再转换成大写字母， _.toUpper(_.first(\_.reverse(array)))
-    ![8834e8783ab9237b98c72b167bc4cd10.jpeg](evernotecid://48BC2FAB-231C-4AC6-BF8E-D98489F70F11/appyinxiangcom/24780240/ENResource/p66)
+    ![8834e8783ab9237b98c72b167bc4cd10](函数式编程.resources/838F8EA7-DAAA-4F35-BAAD-810D81127648.jpg)
 
 -   函数组合可以让我们把细粒度的函数重新组合生成一个新的函数
 
 #### 管道
 
 下面这张图表示程序中使用函数处理数据的过程，给 fn 函数输入参数 a，返回结果 b。可以想想 a 数据 通过一个管道得到了 b 数据。
-![b21aa355e02ee36fbcc064bee6b5ff46.png](evernotecid://48BC2FAB-231C-4AC6-BF8E-D98489F70F11/appyinxiangcom/24780240/ENResource/p67)
+![b21aa355e02ee36fbcc064bee6b5ff46](函数式编程.resources/1DD207B9-B61D-48B1-8298-71DE5C0FBF37.png)
 当 fn 函数比较复杂的时候，我们可以把函数 fn 拆分成多个小函数，此时多了中间运算过程产生的 m 和 n。
 下面这张图中可以想象成把 fn 这个管道拆分成了 3 个管道 f1, f2, f3，数据 a 通过管道 f3 得到结果 m，m 再通过管道 f2 得到结果 n，n 通过管道 f1 得到最终结果 b
-![8a045054d28113e7e2c9234946df2343.png](evernotecid://48BC2FAB-231C-4AC6-BF8E-D98489F70F11/appyinxiangcom/24780240/ENResource/p68)
+![8a045054d28113e7e2c9234946df2343](函数式编程.resources/B7D932FE-44A7-4E60-A461-4C80072BD618.png)
 
 ```js
 const fn = compose(f1, f2, f3)
@@ -1022,3 +1027,128 @@ readFile('../package.json')
 		}
 	})
 ```
+
+#### Pointed 函子
+
+-   Pointed 函子是实现了 of 静态方法的函子
+-   of 方法是为了避免使用 new 来创建对象，更深层的含义是 of 方法用来把值放到上下文 Context(把值放到容器中，使用 map 来处理值)
+
+![feaec2433e9ac2406edd43ab381dd7a9.png](evernotecid://48BC2FAB-231C-4AC6-BF8E-D98489F70F11/appyinxiangcom/24780240/ENNote/p66?hash=feaec2433e9ac2406edd43ab381dd7a9)
+
+![2b18cdca08cc32fa45b83c42136e2f2a.png](evernotecid://48BC2FAB-231C-4AC6-BF8E-D98489F70F11/appyinxiangcom/24780240/ENNote/p66?hash=2b18cdca08cc32fa45b83c42136e2f2a)
+
+```js
+class Container {
+  static of (value) {
+    return new Container(value)
+  }
+    ......
+}
+Contanier.of(2).map(x => x + 5)
+```
+
+#### Monad(单子)
+
+在使用 IO 函子的时候，如果我们写出如下代码:
+
+```js
+// IO函子的问题
+const fp = require('lodash/fp')
+const fs = require('fs')
+class IO {
+	static of(x) {
+		return new IO(function () {
+			return x
+		})
+	}
+
+	constructor(fn) {
+		this._value = fn
+	}
+
+	map(fn) {
+		return new IO(fp.flowRight(fn, this._value))
+	}
+}
+
+// cat 命令
+
+function readFile(fileName) {
+	return new IO(function () {
+		return fs.readFileSync(fileName, 'utf-8')
+	})
+}
+
+function printf(x) {
+	return new IO(function () {
+		console.log(x)
+		return x
+	})
+}
+
+//  组合这两个函数
+
+// cat函数 IO{_value:function(){return IO{_value}}}
+
+// cat函数需要调用两次_value()才能得到值
+// const cat = fp.flowRight(printf, readFile)
+
+// const r = cat('../package.json')._value()._value()
+
+// console.log(r)
+
+const r = readFile('../package.json').map(printf)._value()._value()
+```
+
+-   Monad 函子是可以变扁的 Pointed 函子，IO(IO(x))
+-   一个函子如果具有 join 和 of 两个方法并遵守一些定律就是一个 Monad
+
+```js
+// IO函子的问题
+const fp = require('lodash/fp')
+const fs = require('fs')
+class IO {
+	static of(x) {
+		return new IO(function () {
+			return x
+		})
+	}
+
+	constructor(fn) {
+		this._value = fn
+	}
+
+	map(fn) {
+		return new IO(fp.flowRight(fn, this._value))
+	}
+
+	join() {
+		return this._value()
+	}
+
+	flatMap(fn) {
+		return this.map(fn).join()
+	}
+}
+
+// cat 命令
+
+function readFile(fileName) {
+	return new IO(function () {
+		return fs.readFileSync(fileName, 'utf-8')
+	})
+}
+
+function printf(x) {
+	return new IO(function () {
+		console.log(x)
+		return x
+	})
+}
+
+const r = readFile('../package.json').map(fp.toUpper).flatMap(printf).join()
+
+console.log(r)
+```
+
+-   当我们合并一个函数且这个函数返回的一个值，我们使用 map 方法，当我们合并一个函数且这个返回返回一个新的函子时，我们使用 flatMap 方法。
