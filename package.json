@@ -1,16 +1,23 @@
 {
-  "name": "front-code",
-  "version": "1.0.0",
-  "description": "",
-  "main": "01_callback.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "folktale": "^2.3.2",
-    "lodash": "^4.17.20"
-  }
+	"name": "front-code",
+	"version": "1.0.0",
+	"description": "",
+	"main": "01_callback.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "webpack-dev-server --hot --devtool source-map"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"folktale": "^2.3.2",
+		"lodash": "^4.17.20"
+	},
+	"devDependencies": {
+		"html-webpack-plugin": "^4.5.0",
+		"webpack": "^4.44.1",
+		"webpack-cli": "^3.3.12",
+		"webpack-dev-server": "^3.11.0"
+	}
 }
