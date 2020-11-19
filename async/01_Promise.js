@@ -11,7 +11,9 @@ const ajax = function (url) {
 		xhr.onload = function () {
 			//  监听xhr的状态和响应状态
 			if (xhr.readyState === 4 && xhr.status === 200) {
-				resolve(xhr.response)
+				resolve(JSON.parse(xhr.response))
+			} else {
+				reject(new Error(xhr.responseText))
 			}
 		}
 		// 发送请求
