@@ -2,6 +2,7 @@
 
 const ajax = function (url) {
 	return new Promise(function (resolve, reject) {
+		//throw new Error('coustom error')
 		const xhr = new XMLHttpRequest()
 		//  初始化请求的信息
 		xhr.open('get', url)
