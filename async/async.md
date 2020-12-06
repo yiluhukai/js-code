@@ -44,7 +44,7 @@ ajax('/api/employees')
 
 #### promise 的使用误区
 
--   promise 是一种异步处理方案，主要为了解决回掉地狱的问题，支持链式调用
+-   promise 是一种异步处理方案，主要为了解决回调地狱的问题，支持链式调用
 
 -   错误用法
 
@@ -169,7 +169,7 @@ ajax('/api/url1')
 
 ```
 
--   两种捕获异常的区别是，then()只能捕获前一个 Promise 的异常，使用第二种方式，可以捕获 then()方法中回掉函数跑出了的错误。
+-   两种捕获异常的区别是，then()只能捕获前一个 Promise 的异常，使用第二种方式，可以捕获 then()方法中回掉函数抛出了的错误。
 
 ```js
 ajax('/api/employees')
@@ -210,7 +210,7 @@ process.on('unhandledrejection', (reason, promise) => {
 
 -   Promise.resolve() 返回一个 Promise
     -   Promise.resolve()的参数是一个 Promise 对象，会返回这个 Promise 对象
-    -   Promise.resolve()的参数是一个 thenable 对象（有 then 方法的对象）,会将这个 then 方法第一个函数的参数返回,可以用来将第三方的 Promise 兑现转化为标准的 Promise 对象
+    -   Promise.resolve()的参数是一个 thenable 对象（有 then 方法的对象）,会将这个 then 方法第一个函数的参数返回,可以用来将第三方的 Promise 对象转化为标准的 Promise 对象
     -   Promise.resolve()的参数是其他类型的参数，会返回一个成功状态的 Promise,在对应的回掉函数中可以取到这个参数
 
 ```js
