@@ -206,10 +206,13 @@ class MyPromise {
 			}
 		})
 	}
-	// 接受一个值，返会一个Promise
+	// 接受一个值，返会一个新的Promise
 	static resolve(val) {
 		return new MyPromise((resolve, reject) => {
 			if (val instanceof MyPromise) {
+				val.then(resolve, reject)
+			} else if ('then' in val && typeof val.then === 'function') {
+				// thenable对象
 				val.then(resolve, reject)
 			} else {
 				resolve(val)
@@ -335,3 +338,22 @@ p.catch(err => {
 // }).then(undefined, reason => {
 // 	console.log(reason)
 // })
+
+//  处理thenable 对象
+
+const thenable = {
+	then(resolve, reject) {
+		resolve('hello12')
+	}
+}
+
+const p2 = MyPromise.resolve(thenable)
+
+p2.then(
+	val => {
+		console.log(val)
+	},
+	err => {
+		console.log(err)
+	}
+)
