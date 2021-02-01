@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="btn">add</button>
+    <script>
+        const arrList = []
+        const fun = function () {
+            //  向dom元素上添加新的dom节点
+            for (let i = 0; i < 10000; i++) {
+                document.body.append(document.createElement("p"))
+            }
+            //  向数组中存放字符串
+            arrList.push(new Array(10000).join('x'))
+        }
+        document.getElementById("btn").addEventListener('click', fun)
+    </script>
+</body>
+
+</html>
