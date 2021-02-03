@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="btn">add</button>
+    <script>
+        function foo() {
+            const btn = document.getElementById('btn')
+            btn.onclick = function () {
+                console.log(btn.id)
+            }
+            setTimeout(() => {
+                document.body.removeChild(btn)
+            }, 3000)
+        }
+        foo()
+    </script>
+</body>
+
+</html>
