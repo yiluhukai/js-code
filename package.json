@@ -12,17 +12,18 @@
 	"license": "ISC",
 	"dependencies": {
 		"folktale": "^2.3.2",
-		"lodash": "^4.17.20"
+		"lodash": "^4.17.20",
+		"yeoman-generator": "^5.0.0"
 	},
 	"devDependencies": {
-		"html-webpack-plugin": "^4.5.0",
-		"webpack": "^4.44.1",
-		"webpack-cli": "^3.3.12",
-		"webpack-dev-server": "^3.11.0",
 		"@babel/cli": "^7.12.10",
 		"@babel/core": "^7.12.10",
 		"@babel/preset-flow": "^7.12.1",
 		"flow-bin": "^0.142.0",
-		"flow-remove-types": "^2.142.0"
+		"flow-remove-types": "^2.142.0",
+		"html-webpack-plugin": "^4.5.0",
+		"webpack": "^4.44.1",
+		"webpack-cli": "^3.3.12",
+		"webpack-dev-server": "^3.11.0"
 	}
 }
