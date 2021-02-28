@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/app.js"],"names":["a","z","b","x","y"],"mappings":";;;;;;;;AAAA,IAAMA,CAAC,GAAG;AAAEC,EAAAA,CAAC,EAAE;AAAL,CAAV;;AAEA,IAAMC,CAAC,mCAAQF,CAAR,GAAc;AAAEG,EAAAA,CAAC,EAAE,CAAL;AAAQC,EAAAA,CAAC,EAAE;AAAX,CAAd,CAAP","sourcesContent":["const a = { z: 1 }\n\nconst b = { ...a, ...{ x: 1, y: 1 } }\n"],"file":"app.js"}

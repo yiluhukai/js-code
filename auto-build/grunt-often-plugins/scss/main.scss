@@ -1,0 +1,9 @@
+$color: red;
+
+$width: 20px;
+
+.App {
+	background: $color;
+	height: $width;
+	width: $width;
+}
