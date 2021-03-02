@@ -53,14 +53,14 @@ function styles() {
 	//由 src() 生成的 Vinyl 实例是用 glob base 集作为它们的 base 属性构造的。当使用 dest() 写入文件系统时，将从输出路径中删除 base ，以保留目录结构。
 	return src('src/assets/styles/*.scss', { base: 'src' })
 		.pipe(plugins.sass({ outputStyle: 'expanded' }))
-		.pipe(dest('dist'))
+		.pipe(dest('temp'))
 		.pipe(bs.reload({ stream: true }))
 }
 // 处理js脚本
 function scripts() {
 	return src('src/assets/scripts/*.js', { base: 'src' })
 		.pipe(plugins.babel({ presets: ['@babel/env'] }))
-		.pipe(dest('dist'))
+		.pipe(dest('temp'))
 		.pipe(bs.reload({ stream: true }))
 }
 
@@ -70,7 +70,7 @@ function pages() {
 	// data是模版数据的填充
 	return src('src/*.html', { base: 'src' })
 		.pipe(plugins.swig({ data, cache: false }))
-		.pipe(dest('dist'))
+		.pipe(dest('temp'))
 		.pipe(bs.reload({ stream: true }))
 }
 
@@ -93,7 +93,23 @@ function extra() {
 
 function clean() {
 	// 返回的是一个promise
-	return del(['dist'])
+	return del(['dist', 'temp'])
+}
+
+// 使用gulp-useref处理文件的路径
+function useref() {
+	// 对构建后的html文件做处理，
+	return (
+		src('temp/*.html', { base: 'temp' })
+			// 搜索引用文件的路径
+			.pipe(plugins.useref({ searchPath: ['temp', '.'] }))
+			// 压缩文件
+			.pipe(plugins.if('*.js', plugins.uglify()))
+			.pipe(plugins.if('*.css', plugins.cleanCss()))
+			.pipe(plugins.if('*.html', plugins.htmlmin({ collapseWhitespace: true, minifyCss: true, minifyJs: true })))
+			// 处理后的文件有html、js、css三部分，开始路径和目标路径一样可能会导致文件写入不进去的问题，所以又该目标路径为release
+			.pipe(dest('dist'))
+	)
 }
 
 // 创建一个开发服务器
@@ -108,7 +124,7 @@ function serve() {
 	bs.init({
 		server: {
 			//制定对那些文件启动静态服务
-			baseDir: ['dist', 'src', 'public'],
+			baseDir: ['temp', 'src', 'public'],
 			routes: {
 				'/node_modules': 'node_modules'
 			}
@@ -132,12 +148,14 @@ function serve() {
 
 const compile = parallel(styles, scripts, pages)
 
-const build = series(clean, parallel(compile, images, fonts, extra))
+const build = series(clean, parallel(series(compile, useref), images, fonts, extra))
 
 const develop = series(clean, compile, serve)
 
 module.exports = {
 	build,
 	serve,
-	develop
+	develop,
+	useref,
+	clean
 }
