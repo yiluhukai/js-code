@@ -5,7 +5,7 @@ require.config({
 		// 所以使用时必须通过 'jquery' 这个名称获取这个模块
 		// 但是 jQuery.js 并不一定在同级目录下，所以需要指定路径
 		jquery: './lib/jquery'
-		//module1: "./modules/module1"
+		//module1: './modules/module1'
 	}
 })
 

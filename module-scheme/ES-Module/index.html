@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 使用type="module"的形式开启ES module -->
+    <script type="module">
+        const foo = 123
+    </script>
+    <!-- ES module 默认启用严格模式 -->
+    <script type="module">
+
+        console.log(this)
+    </script>
+
+    <!-- 每个模块是一个独立的作用域 -->
+
+    <script type="module">
+        console.log(foo) //(index):24 Uncaught ReferenceError: foo is not defined
+    </script>
+
+    <!-- 需要在http server的情况下执行，且通过CORS去请求外部脚本的  -->
+
+    <script src="https://lib.sinaapp.com/js/jquery/2.0.2/jquery-2.0.2.min.js" type="module">
+        //Access to script at 'https://lib.sinaapp.com/js/jquery/2.0.2/jquery-2.0.2.min.js' from origin
+    // 'http://localhost:5000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+    </script>
+
+    <!-- ES Module 会延迟执行脚本，相当于defer -->
+
+    <script src="module1.js" type="module"></script>
+    <p> alert 不会阻塞加载</p>
+</body>
+
+</html>
