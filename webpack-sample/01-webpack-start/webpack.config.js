@@ -21,7 +21,21 @@ module.exports = {
 			},
 			{
 				test: /\.png$/,
-				use: ['file-loader']
+				use: {
+					loader: 'url-loader',
+					options: {
+						limit: 10 * 1024 // 10KB
+					}
+				}
+			},
+			{
+				test: /\.js$/,
+				use: {
+					loader: 'babel-loader',
+					options: {
+						presets: ['@babel/preset-env']
+					}
+				}
 			}
 		]
 	}
