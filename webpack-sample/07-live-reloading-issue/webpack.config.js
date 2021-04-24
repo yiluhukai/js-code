@@ -8,7 +8,8 @@ module.exports = {
 	},
 	devtool: 'source-map',
 	devServer: {
-		hot: true
+		//hot: true
+		//hotOnly: true
 	},
 	module: {
 		rules: [
@@ -26,7 +27,7 @@ module.exports = {
 		new HtmlWebpackPlugin({
 			title: 'Webpack Tutorial',
 			template: './src/index.html'
-		}),
-		new webpack.HotModuleReplacementPlugin()
+		})
+		//new webpack.HotModuleReplacementPlugin()
 	]
 }
