@@ -1,13 +1,20 @@
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
+/**
+ *
+ * @type {import("webpack").Configuration}
+ *
+ */
 module.exports = {
 	mode: 'none',
 	entry: {
 		main: './src/index.js'
 	},
 	output: {
-		filename: '[name].bundle.js'
+		filename: '[name]-[contenthash:8].bundle.js'
 	},
 	module: {
 		rules: [
@@ -21,6 +28,10 @@ module.exports = {
 			}
 		]
 	},
+	optimization: {
+		// 指定压缩使用的插件
+		minimizer: [new OptimizeCssAssetsPlugin(), new TerserPlugin()]
+	},
 	plugins: [
 		new CleanWebpackPlugin(),
 		new HtmlWebpackPlugin({
@@ -28,6 +39,9 @@ module.exports = {
 			template: './src/index.html',
 			filename: 'index.html'
 		}),
-		new MiniCssExtractPlugin()
+		new MiniCssExtractPlugin({
+			filename: '[name]-[contenthash:8].bundle.css'
+		})
+		//new OptimizeCssAssetsPlugin()
 	]
 }

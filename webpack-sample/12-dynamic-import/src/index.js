@@ -2,25 +2,27 @@
 // import album from './album/album'
 
 const render = () => {
-  const hash = window.location.hash || '#posts'
+	const hash = window.location.hash || '#posts'
 
-  const mainElement = document.querySelector('.main')
+	const mainElement = document.querySelector('.main')
 
-  mainElement.innerHTML = ''
+	mainElement.innerHTML = ''
 
-  if (hash === '#posts') {
-    // mainElement.appendChild(posts())
-    import(/* webpackChunkName: 'components' */'./posts/posts').then(({ default: posts }) => {
-      mainElement.appendChild(posts())
-    })
-  } else if (hash === '#album') {
-    // mainElement.appendChild(album())
-    import(/* webpackChunkName: 'components' */'./album/album').then(({ default: album }) => {
-      mainElement.appendChild(album())
-    })
-  }
+	if (hash === '#posts') {
+		// mainElement.appendChild(posts())
+		import(/* webpackChunkName: 'posts' */ './posts/posts').then(({ default: posts }) => {
+			mainElement.appendChild(posts())
+		})
+	} else if (hash === '#album') {
+		// mainElement.appendChild(album())
+		import(/* webpackChunkName: 'album' */ './album/album').then(({ default: album }) => {
+			mainElement.appendChild(album())
+		})
+	}
 }
 
 render()
 
 window.addEventListener('hashchange', render)
+
+console.log('1121')
