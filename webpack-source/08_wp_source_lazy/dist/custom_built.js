@@ -2,20 +2,62 @@
  * @Author: yiluhuakai
  * @LastEditors: yiluhuakai
  * @Date: 2021-05-06 00:11:42
- * @LastEditTime: 2021-05-09 13:04:59
+ * @LastEditTime: 2021-05-10 23:49:26
  * @FilePath: /js-code/webpack-source/08_wp_source_lazy/dist/custom_built.js
  * @Description: 手写打包的执行函数
  *
  */
 
 ;(function (modules) {
+	// 12 定义一个json脚本加载时的方法
+	function webpackJsonpCallback(data) {
+		const chunkIds = data[0]
+		const moreModules = data[1]
+
+		// 修改chunk的加载状态
+		let chunkId,
+			moduleId,
+			resolves = []
+		for (let i = 0; i < chunkIds.length; i++) {
+			chunkId = chunkIds[i]
+			// chunk是自身属性且存在 == promise
+			if (Object.prototype.hasOwnProperty.call(installedChunks, chunkId) && installedChunks[chunkId]) {
+				//	取出对应模块promise的resolve()
+				resolves.push(installedChunks[chunkId][0])
+			}
+			// 修改chunk的加载状态为以加载
+			installedChunks[chunkId] = 0
+		}
+
+		// 将加载的chunk合并到installedModules中
+
+		for (moduleId in moreModules) {
+			// moreModules的属性
+			if (Object.prototype.hasOwnProperty.call(moreModules, moduleId)) {
+				modules[moduleId] = moreModules[moduleId]
+			}
+		}
+
+		// 执行resolve()方法
+		while (resolves.length) {
+			resolves.shift()()
+		}
+	}
+	// 13 定义一个变量保存chunk的加载状态
+	// object to store loaded and loading chunks
+	// undefined = chunk not loaded, null = chunk preloaded/prefetched
+	// Promise = chunk loading, 0 = chunk loaded
+
+	const installedChunks = {
+		main: 0
+	}
 	// 01 定义一个对象用于缓存对象
 	const installedModules = {}
 	// 02 定义一个函数用于加载模块
 	function __webpack_require__(moduleId) {
 		// 判断是否已经加载过了，如果加载过了，从缓存中读取
 		if (installedModules[moduleId]) {
-			return installedModules[moduleId]
+			return installedModules[moduleId].exports
 		}
 		// 将模块放入缓存中
 		let module = (installedModules[moduleId] = {
@@ -26,7 +68,7 @@
 
 		// 执行模块的代码
 
-		modules[moduleId].call(module, module, module.exports, __webpack_require__)
+		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__)
 
 		// 修改模块为已经加载
 		module.l = true
@@ -69,7 +111,7 @@
 		// 标记成`ES Module`
 		__webpack_require__.r(ns)
 		// 添加default属性
-		Object.defineProperty(ns, 'defult', { enumerable: true, value: value })
+		Object.defineProperty(ns, 'default', { enumerable: true, value: value })
 		// mode&2 && value是个对象，将value的属性复制成ns的getter方法
 		if (mode & 2 && typeof value !== 'string') {
 			for (const key in value) {
@@ -77,15 +119,20 @@
 					ns,
 					key,
 					function (key) {
-						return function () {
-							return ns[key]
-						}
+						return ns[key]
 					}.bind(null, key)
 				)
 			}
 		}
 		return ns
 	}
+
+	//  11 定义全局对象的webpackJsonp
+	const jsonpArr = (window['webpackJsonp'] = window['webpackJsonp'] || [])
+	// 修改jsonpArr 和window['webpackJsonp']的push方法
+	const oldJsonpFunction = jsonpArr.push.bind(jsonpArr)
+
+	jsonpArr.push = webpackJsonpCallback
 
 	//09  返回模块的默认导出 从a 属性
 	__webpack_require__.n = function (module) {
@@ -100,18 +147,62 @@
 		__webpack_require__.d(getter, 'a', getter)
 		return getter
 	}
+	// 15 jsonpScriptSr函数
+
+	function jsonpScriptSrc(chunkId) {
+		return __webpack_require__.p + '' + chunkId + '.my-built.js'
+	}
+	// 14 定义__webpack_require__.e
+
+	__webpack_require__.e = function (chunkId) {
+		var promises = []
+		var installedChunkData = installedChunks[chunkId]
+
+		if (installedChunkData !== 0) {
+			if (installedChunkData) {
+				// promise
+				promises.push(installedChunkData)
+			} else {
+				// undefined ｜｜ null
+				var promise = new Promise(function (resolve, reject) {
+					installedChunkData = installedChunks[chunkId] = [resolve, reject]
+				})
+				// 将promise保存为第三个参数 并放入promises中
+				promises.push((installedChunkData[2] = promise))
+			}
+		}
+
+		// 创建一个script标签
+		const script = document.createElement('script')
+
+		script.src = jsonpScriptSrc(chunkId)
+
+		document.head.appendChild(script)
+
+		return Promise.all(promises)
+	}
 
 	// 10  publicPath
 	__webpack_require__.p = ''
 
 	return __webpack_require__((__webpack_require__.s = './src/index.js'))
 })({
-	'./src/index.js': function (module, exports, __webpack_require__) {
-		let name = __webpack_require__.t(/*! ./login.js */ './src/login.js', 0b0111)
-		console.log('index.js执行')
-		console.log(name)
-	},
-	'./src/login.js': function (module, exports) {
-		module.exports = 'zce'
-	}
+	/***/ './src/index.js':
+		/*! no static exports found */
+		/***/ function (module, exports, __webpack_require__) {
+			let oBtn = document.getElementById('btn')
+
+			oBtn.addEventListener('click', function () {
+				__webpack_require__
+					.e(/*! import() | login */ 'login')
+					.then(__webpack_require__.t.bind(null, /*! ./login.js */ './src/login.js', 7))
+					.then(login => {
+						console.log(login)
+					})
+			})
+
+			console.log('index.js执行了')
+
+			/***/
+		}
 })
