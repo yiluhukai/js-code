@@ -3,6 +3,8 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/auto-build/bruce-gulp-workflow" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/eslint-demo/06-eslint-gulp/zce-gulp-demo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/eslint-demo/07-eslint-webpack/zce-react-app" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/yeoman/node_sample" vcs="Git" />
   </component>
 </project>
