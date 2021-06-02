@@ -28,6 +28,13 @@ class Hook {
 	_insert(item) {
 		this.taps[this.taps.length] = item
 	}
+
+	/**
+	 * 异步钩子添加事件的方法
+	 */
+	tapAsync(options, fn) {
+		this._tap('async', options, fn)
+	}
 }
 
 module.exports = {
