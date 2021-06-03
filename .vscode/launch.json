@@ -5,13 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "node",
+            "type": "pwa-node",
             "request": "launch",
-            "name": "启动程序",
+            "name": "Launch Program",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/webpack-hook/02-asyncHook/src/01_async_parallel_hook.js"
+            "program": "${workspaceFolder}/webpack-hook/05_webpack_entry/node_modules/webpack/bin/webpack.js"
         }
     ]
 }
