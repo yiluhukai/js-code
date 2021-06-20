@@ -11,7 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/webpack-hook/05_webpack_entry/run.js"
+            "program": "${workspaceFolder}/run.js"
         }
     ]
 }
