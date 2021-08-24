@@ -3,7 +3,7 @@ export = {}
 
 // const func = Math[name]
 
-function Round(funcName: string) {
-	const func = Math[funcName]
-	return (num: number) => func(num)
-}
+// function Round(funcName: string) {
+// 	const func = Math[funcName]
+// 	return (num: number) => func(num)
+// }
