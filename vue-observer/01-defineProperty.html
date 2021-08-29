@@ -1,0 +1,43 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        hello world
+    </div>
+    <script>
+        // 原始的数据
+        const data = {
+            msg:"Hello",
+            count:10
+        }
+        // 使用Object.defineProperty对data进行数据拦截
+        const vm = {}
+        Object.keys(data).forEach( key =>{
+            Object.defineProperty(vm, key,{
+                enumerable:true,
+                configurable:true,
+                set(val){
+                    // 更新的data中的值
+                    console.log('set val')
+                    data[key] =  val 
+                    document.querySelector('#app').textContent = val
+                },
+                get(){
+                    console.log('get val')
+                    return data[key]
+                }
+            })
+        })
+
+        console.log(vm)
+        vm.msg ="hello"
+    </script>
+</body>
+</html>

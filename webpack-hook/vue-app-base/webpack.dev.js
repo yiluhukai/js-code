@@ -27,11 +27,17 @@ const devConfigs = {
 						loader: 'url-loader',
 						options: {
 							// 大于 8K使用file-loader,需要安装file-loader作为依赖
-							limit: 8
-							//esModule: false
+							limit: 8,
+							esModule: false
 						}
 					}
 				]
+			},
+			{
+				test: /\.(js|vue)/,
+				use: 'eslint-loader',
+				// 在babel-loader解析前执行
+				enforce: 'pre'
 			}
 		]
 	},
@@ -44,7 +50,7 @@ const devConfigs = {
 			}
 		})
 	],
-	devtool: 'none',
+	devtool: 'development',
 	devServer: {
 		port: '8080',
 		contentBase: './',

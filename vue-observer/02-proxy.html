@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        app
+    </div>
+
+    <script>
+        const data ={
+            msg:"",
+            count:10
+        }
+        // 使用Proxy拦截data对象
+        const vm  = new Proxy(data,{
+            get(target,key){
+                console.log('get')
+                return target[key]
+            },
+            set(target,key,val){
+                if(val === target[key]){
+                    return
+                }
+                console.log('set val')
+                target[key] = val
+                document.querySelector("#app").textContent =  val
+            }
+        })
+    </script>
+</body>
+</html>

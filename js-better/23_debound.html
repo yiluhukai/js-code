@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Document</title>
+</head>
+
+
+<body>
+    <button id="btn">click me!</button>
+    <script>
+        const btn = document.getElementById('btn')
+
+        function debound(fn, wait, immediate) {
+            // 处理传入的参数
+            if (typeof fn !== 'function') {
+                throw Error('fn must be a function')
+            }
+            // 当wait是个boolean值的时候
+            if (typeof wait === 'boolean' && immediate === undefined) {
+                immediate = wait
+                wait = 300
+            }
+            // 默认不立即执行
+            if (wait && immediate === undefined) {
+                immediate = false
+            }
+            let timer = null
+            return function (...args) {
+                let init = immediate && !timer
+                // 不论事件间隔多大，我们都清空上一次的操作
+                clearTimeout(timer)
+                timer = setTimeout(() => {
+                    //当我们结束连续点击的时候才会执行这个地方
+                    timer = null
+                        // 当我们连续点击第二次时
+                        !immediate ? fn.apply(this, args) : false
+                }, wait)
+                // 当init ===true时，我们的timer还未定义 ,连续点击的第二次开始 timer就存在了
+                init ? fn.apply(this, args) : null
+            }
+
+        }
+
+        function handle(e) {
+            console.log(this, e)
+            console.log('click')
+        }
+
+        // btn.addEventListener('click', debound(handle, 1000, true))
+        btn.addEventListener('click', debound(handle, 1000))
+        // btn.addEventListener('click', handle)
+    </script>
+</body>
+
+</html>
