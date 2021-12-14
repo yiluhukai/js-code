@@ -341,19 +341,19 @@ p.catch(err => {
 
 //  处理thenable 对象
 
-const thenable = {
-	then(resolve, reject) {
-		resolve('hello12')
-	}
-}
+// const thenable = {
+// 	then(resolve, reject) {
+// 		resolve('hello12')
+// 	}
+// }
 
-const p2 = MyPromise.resolve(thenable)
+// const p2 = MyPromise.resolve(thenable)
 
-p2.then(
-	val => {
-		console.log(val)
-	},
-	err => {
-		console.log(err)
-	}
-)
+// p2.then(
+// 	val => {
+// 		console.log(val)
+// 	},
+// 	err => {
+// 		console.log(err)
+// 	}
+// )
