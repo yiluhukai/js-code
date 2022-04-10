@@ -1,4 +1,4 @@
-import { updateNodeElement } from "./updateNodeElement";
+import updateElementNode from "./updateElementNode";
 import mountElement from "./mountElement";
 export const createDomElement = (virtualDom) => {
     // 先判断是不是文本节点
@@ -8,8 +8,10 @@ export const createDomElement = (virtualDom) => {
     } else {
         // 是一个元素节点
         dom = document.createElement(virtualDom.type);
-        updateNodeElement(virtualDom, dom);
+        updateElementNode(virtualDom, dom);
     }
+    // 保存虚拟dom到创建的元素
+    dom._virtualDom = virtualDom;
 
     //   处理当前节点的子节点
     virtualDom.children.forEach((child) => {
