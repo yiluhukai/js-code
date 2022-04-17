@@ -19,5 +19,8 @@ export const createDomElement = (virtualDom) => {
         mountElement(child, dom);
     });
 
+    if (virtualDom.props && virtualDom.props.ref) {
+        virtualDom.props.ref(dom);
+    }
     return dom;
 };
