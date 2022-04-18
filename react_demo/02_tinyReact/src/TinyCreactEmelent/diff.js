@@ -87,15 +87,6 @@ const diff = (virtualDom, container, oldDom) => {
             });
         }
 
-        for (
-            let i = oldChildren.length - 1;
-            i >= virtualDom.children.length;
-            i--
-        ) {
-            // 删除当前的子元素
-            oldDom.removeChild(oldChildren[i]);
-        }
-
         // 如果旧节点的数量多于要渲染的新节点的长度;
         if (oldChildren.length > virtualDom.children.length) {
             if (hasNoKey) {

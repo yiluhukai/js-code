@@ -11,7 +11,7 @@ export default function mountNativeElement(virtualDOM, container, oldDom) {
     }
     if (oldDom) {
         container.insertBefore(dom, oldDom);
-        // unmount(oldDom);
+        unmount(oldDom);
     } else {
         // 默认是追加元素到最后面
         container.appendChild(dom);

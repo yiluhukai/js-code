@@ -95,13 +95,14 @@ class RefDomo extends TinyReact.Component {
                 { name: "李四", id: "2" },
                 { name: "王五", id: "3" },
             ],
+            count: 0,
         };
     }
     changeOrder() {
-        const { people } = this.state;
+        const { people, count } = this.state;
         const p = people.shift();
         people.push(p);
-        this.setState({ people: people });
+        this.setState({ people: people, count: count + 1 });
     }
 
     addPeople() {
@@ -112,8 +113,10 @@ class RefDomo extends TinyReact.Component {
 
     deletePeople() {
         const { people } = this.state;
-        people.pop();
-        this.setState({ people });
+        // people.pop();
+        // console.error(people);
+
+        this.setState({ people: people.slice(1) });
     }
 
     render() {
@@ -141,7 +144,7 @@ class RefDomo extends TinyReact.Component {
                 </ul>
 
                 <button onClick={this.changeOrder.bind(this)}>
-                    changeOrder
+                    changeOrder{this.state.count}
                 </button>
                 <button onClick={this.addPeople.bind(this)}>Add people</button>
                 <button onClick={this.deletePeople.bind(this)}>

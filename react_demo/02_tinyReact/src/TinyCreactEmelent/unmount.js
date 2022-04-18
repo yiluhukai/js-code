@@ -33,10 +33,13 @@ export function unmount(dom) {
     // 递归删除子节点
     if (dom.childNodes.length > 0) {
         for (let i = 0; i < dom.childNodes.length; i++) {
-            unmount(dom.childNodes[i]);
-            i--;
+            // 如果是元素节点，才递归调用去卸载元素,如果是文本节点，我们删除当前节点就可以删除对应的文本节点
+            if (dom.childNodes[i].nodeType === 1) {
+                unmount(dom.childNodes[i]);
+                i--;
+            }
         }
     }
-
+    // 只是将dom对应的对象从dom树上一处，如果有其他的引用只想它，我们还是可以访问到这个dom对象
     dom.remove();
 }

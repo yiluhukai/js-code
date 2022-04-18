@@ -12,12 +12,11 @@ export default function updateElementNode(
             if (prop.slice(0, 2) === "on") {
                 // 当我们要添加的属性是元素的事件
                 const eventName = prop.slice(2).toLowerCase();
-
-                newElement.addEventListener(eventName, propValue);
                 if (oldPropValue) {
                     // 删除旧的事件
                     newElement.removeEventListener(eventName, oldPropValue);
                 }
+                newElement.addEventListener(eventName, propValue);
             } else if (prop === "value" || prop === "checked") {
                 // bool属性
                 newElement[prop] = propValue;
@@ -45,4 +44,5 @@ export default function updateElementNode(
             }
         }
     });
+    newElement._virtualDom = virtualDom;
 }
