@@ -15,6 +15,8 @@ const taskQueue = createTaskQueue();
 
 let subTask = null;
 
+let pendingCommit = null;
+
 const getFirstTask = () => {
     /**
      * 获取任务队列队列中第一个任务的子任务
@@ -33,7 +35,7 @@ const getFirstTask = () => {
         stateNode: subTask.dom, //当前fiber对象对应的dom
         tag: "hostRoot", //根节点
         effects: [],
-        child: null, //后面构建了子fiber节点再去设置
+        child: null, //后面构建了子fiber节点再去设置,
     };
 };
 
@@ -78,12 +80,39 @@ const reconcileChildren = (fiber, children) => {
         index++;
     }
 };
+// fiber对象是最外层的fiber对象
+const commitAllWork = (fiber) => {
+    fiber.effects.forEach((subFiber) => {
+        // 添加的过程中忽略掉类组件和函数组件的fiber对象
+
+        if (subFiber.effectTag === "placement") {
+            let parentFiber = subFiber.parent;
+
+            while (
+                parentFiber.tag === "class_component" ||
+                parentFiber.tag === "function_component"
+            ) {
+                parentFiber = parentFiber.parent;
+            }
+            if (subFiber.tag === "host_component") {
+                // 添加节点
+                parentFiber.stateNode.appendChild(subFiber.stateNode);
+            }
+        }
+    });
+};
 
 const executeTask = (fiber) => {
     /**
      * 构建当前fiber对象的子fiber对象
      */
-    reconcileChildren(fiber, fiber.props.children);
+    if (fiber.tag === "class_component") {
+        reconcileChildren(fiber, fiber.stateNode.render());
+    } else if (fiber.tag === "function_component") {
+        reconcileChildren(fiber, fiber.stateNode(fiber.props));
+    } else {
+        reconcileChildren(fiber, fiber.props.children);
+    }
 
     // 下次任务时继续构建fiber.child对象,z这块只处理了子节点，没有处理兄弟节点
     if (fiber.child) {
@@ -104,7 +133,9 @@ const executeTask = (fiber) => {
         currentFiber = currentFiber.parent;
         // 向上去处理父节点subling节点
     }
-    console.dir(fiber);
+    // 执行完成后，currentFiber指向的最外层的fiber对象
+    // console.dir(currentFiber);
+    pendingCommit = currentFiber;
 };
 
 const workLoop = (deadline) => {
@@ -116,6 +147,12 @@ const workLoop = (deadline) => {
     while (subTask && deadline.timeRemaining() > 1) {
         // 执行任务并返回一个新的任务,这里的任务是构建好的fiber对象
         subTask = executeTask(subTask);
+    }
+
+    // 当上面的fiber对象构建完成，subTask === undefined
+
+    if (pendingCommit) {
+        commitAllWork(pendingCommit);
     }
 };
 
