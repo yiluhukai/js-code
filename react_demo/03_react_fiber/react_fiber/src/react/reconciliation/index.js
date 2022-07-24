@@ -9,6 +9,7 @@
  *
  */
 
+import updateElementNode from "../DOM/updateElementNode";
 import { createTaskQueue, arrified, createStateNode, getTag } from "../Misc";
 
 const taskQueue = createTaskQueue();
@@ -36,6 +37,7 @@ const getFirstTask = () => {
         tag: "hostRoot", //根节点
         effects: [],
         child: null, //后面构建了子fiber节点再去设置,
+        alternate: subTask.dom.__rootFiberContainer, // 替换的节点对应的fiber对象
     };
 };
 
@@ -53,26 +55,67 @@ const reconcileChildren = (fiber, children) => {
         length = arrifiedChildren.length,
         newFiber = null,
         prevFiber = null;
-
-    while (index < length) {
+    let alternate = null; // 存储每一个子节点对应的旧fiber节点
+    if (fiber.alternate && fiber.alternate.child) {
+        alternate = fiber.alternate.child;
+    }
+    // 保证我们删除的时候可以进入
+    while (index < length || alternate) {
         element = arrifiedChildren[index];
-        // 将当前的虚拟dom构建成fiber对象
-        newFiber = {
-            type: element.type,
-            props: element.props,
-            tag: getTag(element),
-            effects: [],
-            effectTag: "placement", // 添加节点
-            // stateNode: null,
-            parent: fiber,
-        };
-        // 给新创建的fiber对象添加stateNode属性
-        newFiber.stateNode = createStateNode(newFiber);
+        if (!element && alternate) {
+            //说明子节点中有删除
+            alternate.effectTag = "delete";
+            // 将删除操作添加到新的fiber对象中
+            fiber.effects.push(alternate);
+        } else if (element && alternate) {
+            // 更新节点
+            // 节点的类型不同
+            newFiber = {
+                type: element.type,
+                props: element.props,
+                tag: getTag(element),
+                effects: [],
+                effectTag: "update", // 更新节点
+                // stateNode: null,
+                parent: fiber,
+                alternate, // 当前节点对应的旧的fiber对象
+            };
+            // 更新节点
+            if (element.type !== alternate.type) {
+                // 给新创建的fiber对象添加stateNode属性
+                newFiber.stateNode = createStateNode(newFiber);
+            } else {
+                // 节点的类型相同，用旧的几点代替新的节点
+                newFiber.stateNode = alternate.stateNode;
+            }
+        } else if (element && !alternate) {
+            // 初始渲染
+            // 将当前的虚拟dom构建成fiber对象
+            newFiber = {
+                type: element.type,
+                props: element.props,
+                tag: getTag(element),
+                effects: [],
+                effectTag: "placement", // 添加节点
+                // stateNode: null,
+                parent: fiber,
+            };
+            // 给新创建的fiber对象添加stateNode属性
+            newFiber.stateNode = createStateNode(newFiber);
+        }
+
+        // 更新胡后续的child节点对应的alternate
+        if (alternate && alternate.subling) {
+            alternate = alternate.subling;
+        } else {
+            alternate = null;
+        }
 
         if (index == 0) {
             // 作为当前节点的child
             fiber.child = newFiber;
-        } else {
+        } else if (element) {
+            //避免删除节点的时候去添加过去的节点
             //作为前一个兄弟节点的邻居节点
             prevFiber.subling = newFiber;
         }
@@ -83,9 +126,31 @@ const reconcileChildren = (fiber, children) => {
 // fiber对象是最外层的fiber对象
 const commitAllWork = (fiber) => {
     fiber.effects.forEach((subFiber) => {
-        // 添加的过程中忽略掉类组件和函数组件的fiber对象
-
-        if (subFiber.effectTag === "placement") {
+        if (subFiber.effectTag === "delete") {
+            // 删除节点
+            subFiber.parent.stateNode.removeChild(subFiber.stateNode);
+        } else if (subFiber.effectTag === "update") {
+            // 更新dom节点
+            if (subFiber.type !== subFiber.alternate.type) {
+                /**
+                 * dom节点的类型不同，创建一个新的节点去替换旧的节点
+                 */
+                subFiber.parent.stateNode.replaceChild(
+                    subFiber.stateNode,
+                    subFiber.alternate.stateNode
+                );
+            } else {
+                /**
+                 * 类型相同，更新节点的内容
+                 */
+                updateElementNode(
+                    subFiber,
+                    subFiber.stateNode,
+                    subFiber.alternate
+                );
+            }
+        } else if (subFiber.effectTag === "placement") {
+            // 添加的过程中忽略掉类组件和函数组件的fiber对象
             let parentFiber = subFiber.parent;
 
             while (
@@ -99,6 +164,12 @@ const commitAllWork = (fiber) => {
                 parentFiber.stateNode.appendChild(subFiber.stateNode);
             }
         }
+
+        /**
+         * 缓存旧的的fiber节点，为下次比对准备
+         */
+
+        fiber.stateNode.__rootFiberContainer = fiber;
     });
 };
 

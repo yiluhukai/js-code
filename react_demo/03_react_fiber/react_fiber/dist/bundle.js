@@ -134,7 +134,25 @@ __webpack_require__.r(__webpack_exports__);
 function updateElementNode(virtualDom, newElement) {
   var oldVirtualDom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
   var propsObj = virtualDom.props || {};
-  var oldPropsObj = oldVirtualDom.props || {};
+  var oldPropsObj = oldVirtualDom.props || {}; // 对文本节点的更新
+
+  if (virtualDom.type === "text") {
+    // 文本的属性不同
+    if (propsObj.textContent !== oldPropsObj.textContent) {
+      // 更新的时候需要去对比父元素的类型,为什么呢 ，因为父元素的类型不同，更新完子节点后回去创建新的无法给父节点替换节点，
+      // 因为原来的子节点oldVirtualDom.stateNode，不存在virtualDom.parent.stateNode上
+      if (virtualDom.parent.type !== oldVirtualDom.parent.type) {
+        // 父元素的类型不同
+        virtualDom.parent.stateNode.appendChild(document.createTextNode(propsObj.textContent));
+      } else {
+        // 父元素的类型相同
+        virtualDom.parent.stateNode.replaceChild(document.createTextNode(propsObj.textContent), oldVirtualDom.stateNode);
+      }
+    }
+
+    return;
+  }
+
   Object.keys(propsObj).forEach(function (prop) {
     var propValue = propsObj[prop];
     var oldPropValue = oldPropsObj[prop];
@@ -320,7 +338,7 @@ var getTag = function getTag(vdom) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "arrified": () => (/* reexport safe */ _Arrified__WEBPACK_IMPORTED_MODULE_1__["default"]),
-/* harmony export */   "createReactInstance": () => (/* reexport safe */ _CreateReactInstance__WEBPACK_IMPORTED_MODULE_4__["default"]),
+/* harmony export */   "createReactInstance": () => (/* reexport safe */ _CreateReactInstance__WEBPACK_IMPORTED_MODULE_4__.createReactInstance),
 /* harmony export */   "createStateNode": () => (/* reexport safe */ _createStateNode__WEBPACK_IMPORTED_MODULE_2__["default"]),
 /* harmony export */   "createTaskQueue": () => (/* reexport safe */ _CreateTaskQueue__WEBPACK_IMPORTED_MODULE_0__.createTaskQueue),
 /* harmony export */   "getTag": () => (/* reexport safe */ _getTag__WEBPACK_IMPORTED_MODULE_3__["default"])
@@ -372,7 +390,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "render": () => (/* binding */ render)
 /* harmony export */ });
-/* harmony import */ var _Misc__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Misc */ "./src/react/Misc/index.js");
+/* harmony import */ var _DOM_updateElementNode__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../DOM/updateElementNode */ "./src/react/DOM/updateElementNode.js");
+/* harmony import */ var _Misc__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Misc */ "./src/react/Misc/index.js");
 /**
  *
  * 实现render方法：
@@ -384,7 +403,8 @@ __webpack_require__.r(__webpack_exports__);
  *
  */
 
-var taskQueue = (0,_Misc__WEBPACK_IMPORTED_MODULE_0__.createTaskQueue)();
+
+var taskQueue = (0,_Misc__WEBPACK_IMPORTED_MODULE_1__.createTaskQueue)();
 var subTask = null;
 var pendingCommit = null;
 
@@ -406,7 +426,9 @@ var getFirstTask = function getFirstTask() {
     tag: "hostRoot",
     //根节点
     effects: [],
-    child: null //后面构建了子fiber节点再去设置,
+    child: null,
+    //后面构建了子fiber节点再去设置,
+    alternate: subTask.dom.__rootFiberContainer // 替换的节点对应的fiber对象
 
   };
 };
@@ -420,33 +442,79 @@ var getFirstTask = function getFirstTask() {
 var reconcileChildren = function reconcileChildren(fiber, children) {
   //当children是根fiber对象时，children是对象，当是用creaeElement方法创建的，则是数组
   // 将children转成数组统一处理
-  var arrifiedChildren = (0,_Misc__WEBPACK_IMPORTED_MODULE_0__.arrified)(children);
+  var arrifiedChildren = (0,_Misc__WEBPACK_IMPORTED_MODULE_1__.arrified)(children);
   var index = 0,
       element = null,
       length = arrifiedChildren.length,
       newFiber = null,
       prevFiber = null;
+  var alternate = null; // 存储每一个子节点对应的旧fiber节点
 
-  while (index < length) {
-    element = arrifiedChildren[index]; // 将当前的虚拟dom构建成fiber对象
+  if (fiber.alternate && fiber.alternate.child) {
+    alternate = fiber.alternate.child;
+  } // 保证我们删除的时候可以进入
 
-    newFiber = {
-      type: element.type,
-      props: element.props,
-      tag: (0,_Misc__WEBPACK_IMPORTED_MODULE_0__.getTag)(element),
-      effects: [],
-      effectTag: "placement",
-      // 添加节点
-      // stateNode: null,
-      parent: fiber
-    }; // 给新创建的fiber对象添加stateNode属性
 
-    newFiber.stateNode = (0,_Misc__WEBPACK_IMPORTED_MODULE_0__.createStateNode)(newFiber);
+  while (index < length || alternate) {
+    element = arrifiedChildren[index];
+
+    if (!element && alternate) {
+      //说明子节点中有删除
+      alternate.effectTag = "delete"; // 将删除操作添加到新的fiber对象中
+
+      fiber.effects.push(alternate);
+    } else if (element && alternate) {
+      // 更新节点
+      // 节点的类型不同
+      newFiber = {
+        type: element.type,
+        props: element.props,
+        tag: (0,_Misc__WEBPACK_IMPORTED_MODULE_1__.getTag)(element),
+        effects: [],
+        effectTag: "update",
+        // 更新节点
+        // stateNode: null,
+        parent: fiber,
+        alternate: alternate // 当前节点对应的旧的fiber对象
+
+      }; // 更新节点
+
+      if (element.type !== alternate.type) {
+        // 给新创建的fiber对象添加stateNode属性
+        newFiber.stateNode = (0,_Misc__WEBPACK_IMPORTED_MODULE_1__.createStateNode)(newFiber);
+      } else {
+        // 节点的类型相同，用旧的几点代替新的节点
+        newFiber.stateNode = alternate.stateNode;
+      }
+    } else if (element && !alternate) {
+      // 初始渲染
+      // 将当前的虚拟dom构建成fiber对象
+      newFiber = {
+        type: element.type,
+        props: element.props,
+        tag: (0,_Misc__WEBPACK_IMPORTED_MODULE_1__.getTag)(element),
+        effects: [],
+        effectTag: "placement",
+        // 添加节点
+        // stateNode: null,
+        parent: fiber
+      }; // 给新创建的fiber对象添加stateNode属性
+
+      newFiber.stateNode = (0,_Misc__WEBPACK_IMPORTED_MODULE_1__.createStateNode)(newFiber);
+    } // 更新胡后续的child节点对应的alternate
+
+
+    if (alternate && alternate.subling) {
+      alternate = alternate.subling;
+    } else {
+      alternate = null;
+    }
 
     if (index == 0) {
       // 作为当前节点的child
       fiber.child = newFiber;
-    } else {
+    } else if (element) {
+      //避免删除节点的时候去添加过去的节点
       //作为前一个兄弟节点的邻居节点
       prevFiber.subling = newFiber;
     }
@@ -459,8 +527,24 @@ var reconcileChildren = function reconcileChildren(fiber, children) {
 
 var commitAllWork = function commitAllWork(fiber) {
   fiber.effects.forEach(function (subFiber) {
-    // 添加的过程中忽略掉类组件和函数组件的fiber对象
-    if (subFiber.effectTag === "placement") {
+    if (subFiber.effectTag === "delete") {
+      // 删除节点
+      subFiber.parent.stateNode.removeChild(subFiber.stateNode);
+    } else if (subFiber.effectTag === "update") {
+      // 更新dom节点
+      if (subFiber.type !== subFiber.alternate.type) {
+        /**
+         * dom节点的类型不同，创建一个新的节点去替换旧的节点
+         */
+        subFiber.parent.stateNode.replaceChild(subFiber.stateNode, subFiber.alternate.stateNode);
+      } else {
+        /**
+         * 类型相同，更新节点的内容
+         */
+        (0,_DOM_updateElementNode__WEBPACK_IMPORTED_MODULE_0__["default"])(subFiber, subFiber.stateNode, subFiber.alternate);
+      }
+    } else if (subFiber.effectTag === "placement") {
+      // 添加的过程中忽略掉类组件和函数组件的fiber对象
       var parentFiber = subFiber.parent;
 
       while (parentFiber.tag === "class_component" || parentFiber.tag === "function_component") {
@@ -472,6 +556,12 @@ var commitAllWork = function commitAllWork(fiber) {
         parentFiber.stateNode.appendChild(subFiber.stateNode);
       }
     }
+    /**
+     * 缓存旧的的fiber节点，为下次比对准备
+     */
+
+
+    fiber.stateNode.__rootFiberContainer = fiber;
   });
 };
 
@@ -643,15 +733,14 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
- // const jsx = (
-//     <div>
-//         <p>Hello wolrd!</p>
-//         <h1>subling</h1>
-//     </div>
-// );
-// console.log(jsx);
 
-var root = document.getElementById("root"); // render(jsx, root);
+var jsx = /*#__PURE__*/_react__WEBPACK_IMPORTED_MODULE_0__["default"].createElement("div", null, /*#__PURE__*/_react__WEBPACK_IMPORTED_MODULE_0__["default"].createElement("p", null, "Hello world!"), /*#__PURE__*/_react__WEBPACK_IMPORTED_MODULE_0__["default"].createElement("h1", null, "subling")); // console.log(jsx);
+
+var root = document.getElementById("root");
+(0,_react__WEBPACK_IMPORTED_MODULE_0__.render)(jsx, root);
+setTimeout(function () {
+  (0,_react__WEBPACK_IMPORTED_MODULE_0__.render)( /*#__PURE__*/_react__WEBPACK_IMPORTED_MODULE_0__["default"].createElement("div", null, /*#__PURE__*/_react__WEBPACK_IMPORTED_MODULE_0__["default"].createElement("h1", null, "subling")), root);
+}, 2000);
 
 var MyComponent = /*#__PURE__*/function (_Component) {
   _inherits(MyComponent, _Component);
@@ -675,11 +764,7 @@ var MyComponent = /*#__PURE__*/function (_Component) {
 }(_react__WEBPACK_IMPORTED_MODULE_0__.Component); // function MyComponent(props) {
 //     return <div> Hello,{props.name}!</div>;
 // }
-
-
-(0,_react__WEBPACK_IMPORTED_MODULE_0__.render)( /*#__PURE__*/_react__WEBPACK_IMPORTED_MODULE_0__["default"].createElement(MyComponent, {
-  name: "zce"
-}), root);
+// render(<MyComponent name="zce" />, root);
 })();
 
 /******/ })()

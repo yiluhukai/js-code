@@ -5,6 +5,29 @@ export default function updateElementNode(
 ) {
     const propsObj = virtualDom.props || {};
     const oldPropsObj = oldVirtualDom.props || {};
+
+    // 对文本节点的更新
+    if (virtualDom.type === "text") {
+        // 文本的属性不同
+        if (propsObj.textContent !== oldPropsObj.textContent) {
+            // 更新的时候需要去对比父元素的类型,为什么呢 ，因为父元素的类型不同，更新完子节点后回去创建新的无法给父节点替换节点，
+            // 因为原来的子节点oldVirtualDom.stateNode，不存在virtualDom.parent.stateNode上
+            if (virtualDom.parent.type !== oldVirtualDom.parent.type) {
+                // 父元素的类型不同
+                virtualDom.parent.stateNode.appendChild(
+                    document.createTextNode(propsObj.textContent)
+                );
+            } else {
+                // 父元素的类型相同
+                virtualDom.parent.stateNode.replaceChild(
+                    document.createTextNode(propsObj.textContent),
+                    oldVirtualDom.stateNode
+                );
+            }
+        }
+        return;
+    }
+
     Object.keys(propsObj).forEach((prop) => {
         const propValue = propsObj[prop];
         const oldPropValue = oldPropsObj[prop];
